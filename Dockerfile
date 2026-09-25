@@ -1,20 +1,17 @@
-# 使用官方 Python 3.10 轻量级镜像（与你刚才的 conda 环境版本一致）
-FROM python:3.10-slim
+# 使用 NVIDIA 提供的包含 CUDA 11.8 的 Python 3.10 镜像
+FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 
-# 设置容器内的工作目录
+# 安装 Python 和 pip
+RUN apt-get update && apt-get install -y python3 python3-pip && rm -rf /var/lib/apt/lists/*
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
 WORKDIR /app
 
-# 复制依赖清单到容器内
 COPY requirements.txt .
-
-# 在容器内安装依赖（使用清华源加速）
+# 安装依赖（利用清华源加速）
 RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
-# 复制当前目录下的所有代码到容器内的 /app 目录
 COPY . .
 
-# 暴露容器的 8000 端口
 EXPOSE 8000
-
-# 启动容器时执行的命令（注意这里 host 必须是 0.0.0.0，不能是 127.0.0.1）
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
